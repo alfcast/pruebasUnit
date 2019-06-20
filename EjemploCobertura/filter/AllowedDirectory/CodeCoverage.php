@@ -1,4 +1,11 @@
 <?php
+
+    class PilesHeap extends SplMinHeap {
+        public function compare($pile1, $pile2) {
+            return parent::compare($pile1->top(), $pile2->top());
+        }
+    }
+
     /**
      *
      */
@@ -7,7 +14,7 @@
 
         private $_fval, $_sval;
 
-        public function __construct( $fval, $sval ) {
+        public function __construct( $fval=5, $sval=6 ) {
             $this->_fval = $fval;
             $this->_sval = $sval;
         }
@@ -21,47 +28,42 @@
             return $this->_fval - $this->_sval;
         }
 
-        public function multiply() {
-            return $this->_fval * $this->_sval;
-        }
-
-        public function divide() {
-            return $this->_fval / $this->_sval;
-        }
-
-        public function triangle()
-        {
-            $j=3;
-            $n=5;
-            for ($l=0; $l <= $j ; $l++) {
-                for($i=1; $i<=$n; $i++)
-                {
-                    for($j=1; $j<=$i; $j++)
-                    {
-                        echo ' * ';
-                    }
-                echo "\n";
+        public function patienceSort($n) {
+            $piles = array();
+            // sort into piles
+            foreach ($n as $x) {
+                // binary search
+                $low = 0; $high = count($piles)-1;
+                while ($low <= $high) {
+                    $mid = (int)(($low + $high) / 2);
+                    if ($piles[$mid]->top() >= $x)
+                        $high = $mid - 1;
+                    else
+                        $low = $mid + 1;
                 }
-                for($i=$n; $i>=1; $i--)
-                {
-                    for($j=1; $j<=$i; $j++)
-                    {
-                        echo ' * ';
-                    }
-                echo "\n";
-                }
+                $i = $low;
+                if ($i == count($piles))
+                    $piles[] = new SplStack();
+                $piles[$i]->push($x);
             }
-
+             // priority queue allows us to merge piles efficiently
+            $heap = new PilesHeap();
+            foreach ($piles as $pile)
+                $heap->insert($pile);
+            for ($c = 0; $c < count($n); $c++) {
+                $smallPile = $heap->extract();
+                $n[$c] = $smallPile->pop();
+                if (!$smallPile->isEmpty())
+                $heap->insert($smallPile);
+            }
+            return $n;
         }
-
     }
-        $mycalc = new CodeCoverage(12, 6);
-        echo $mycalc-> add()."\n"; // Displays 18
-        echo $mycalc-> multiply()."\n"; // Displays 72
-        echo $mycalc-> subtract()."\n"; // Displays 6
-        echo $mycalc-> divide()."\n"; // Displays 2
-        echo "\n";
-        $mycalc->triangle();
-        echo "\n";
+
+    // $cc = new CodeCoverage(12, 6);
+    // echo $cc-> add()."\n"; // Displays 18
+    // $a = array(100, 76, 7, 2, 5, 4, 1);
+    // $a = $cc-> patienceSort($a);
+    // var_dump($a);
 
 ?>
